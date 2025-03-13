@@ -290,7 +290,7 @@ while True:
         print(f"Průměrná frekvence: {prum_frekvence} Hz")
 
         # Pokud průměrná frekvence spadá do určitého intervalu, odešle WhatsApp upozornění
-        if 95 < prum_frekvence < 260:
+        if 350 < prum_frekvence < 500:
             send_whatsapp(PHONE, CALLMEBOT_API)
             print("Asi se rojíme")
         else:
