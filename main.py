@@ -32,6 +32,16 @@ def load_config():
     except OSError:
         return None
 
+# Funkce pro kontrolu, zda chceme spustit konfigurační režim
+def force_config_mode():
+    # Využíváme vestavěné tlačítko "boot" (GPIO0) k vynucení konfigurace.
+    # Tlačítko reset nelze použít, jelikož resetuje zařízení.
+    boot_button = machine.Pin(0, machine.Pin.IN, machine.Pin.PULL_UP)
+    if boot_button.value() == 0:
+        print("Boot button stisknuto, spuštění konfiguračního režimu.")
+        return True
+    return False
+
 # Režim konfigurace: Spustí se AP mód a jednoduchý webový server, kde zadáte potřebné údaje
 def run_config_mode():
     print("Spouštím konfigurační režim. Připojte se k WiFi AP s názvem 'Včely_nastavení'.")
@@ -95,15 +105,21 @@ def run_config_mode():
             post_data = cl_file.read(content_length).decode()
             print("Přijatá data:", post_data)
             params = parse_qs(post_data)
+            # Nahrazení '+' znaků za mezery v hodnotách
+            ssid = params.get("ssid", "").replace("+", " ")
+            wifi_password = params.get("wifi_password", "").replace("+", " ")
+            thingspeak_api = params.get("thingspeak_api", "").replace("+", " ")
+            callmebot_api = params.get("callmebot_api", "").replace("+", " ")
+            phone = params.get("phone", "").replace("+", " ")
             # Uložení zadaných hodnot do konfiguračního souboru
-            config_data = "ssid=" + params.get("ssid", "") + "\n"
-            config_data += "wifi_password=" + params.get("wifi_password", "") + "\n"
-            config_data += "thingspeak_api=" + params.get("thingspeak_api", "") + "\n"
-            config_data += "callmebot_api=" + params.get("callmebot_api", "") + "\n"
-            config_data += "phone=" + params.get("phone", "") + "\n"
+            config_data = "ssid=" + ssid + "\n"
+            config_data += "wifi_password=" + wifi_password + "\n"
+            config_data += "thingspeak_api=" + thingspeak_api + "\n"
+            config_data += "callmebot_api=" + callmebot_api + "\n"
+            config_data += "phone=" + phone + "\n"
             with open(CONFIG_FILE, "w") as f:
                 f.write(config_data)
-            response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n<h1>Konfigurace ulozena! Zarizeni se restartuje.</h1>"
+            response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n<h1>Konfigurace uložena! Zařízení se restartuje.</h1>"
             cl.send(response)
             cl.close()
             s.close()
@@ -114,7 +130,10 @@ def run_config_mode():
             cl.send(response)
             cl.close()
 
-# Načtení konfigurace a spuštění režimu konfigurace, pokud soubor neexistuje
+# Pokud je tlačítko boot stisknuto, nebo konfigurační soubor neexistuje, spustí se konfigurační režim
+if force_config_mode():
+    run_config_mode()
+
 config = load_config()
 if config is None:
     run_config_mode()
@@ -261,7 +280,7 @@ def deep_sleep(seconds):
 connect_wifi()
 
 # Inicializace instance pro aktualizaci a kontrola aktualizace souboru main.py
-updater = update.Update("https://raw.githubusercontent.com/MartinMiso/aktualizace_2/refs/heads/main/main.py")
+updater = update.Update("https://raw.githubusercontent.com/MartinMiso/aktualizace_5/refs/heads/main/main.py")
 updater.compare_and_update("main.py")
 
 # Načtení nebo nastavení první váhy (tary)
@@ -280,7 +299,7 @@ while True:
         wlan = network.WLAN(network.STA_IF)
         rssi = wlan.status('rssi') if wlan.isconnected() else None
 
-        # Měření frekvence: odebere 10 měření a spočítá průměr
+        # Měření frekvence: odebere 35 měření a spočítá průměr
         prumer = []
         for _ in range(35):
             time.sleep(0.5)
@@ -300,3 +319,4 @@ while True:
         print("Chyba senzoru:", e)
      
     deep_sleep(600000)  # Hluboký spánek na 10 minut
+
