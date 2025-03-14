@@ -280,7 +280,7 @@ def deep_sleep(seconds):
 connect_wifi()
 
 # Inicializace instance pro aktualizaci a kontrola aktualizace souboru main.py
-updater = update.Update("https://raw.githubusercontent.com/MartinMiso/aktualizace_5/refs/heads/main/main.py")
+updater = update.Update("https://raw.githubusercontent.com/MartinMiso/aktualizace_2/refs/heads/main/main.py")
 updater.compare_and_update("main.py")
 
 # Načtení nebo nastavení první váhy (tary)
