@@ -105,12 +105,18 @@ def run_config_mode():
             post_data = cl_file.read(content_length).decode()
             print("Přijatá data:", post_data)
             params = parse_qs(post_data)
+            # Nahrazení '+' znaků za mezery v hodnotách
+            ssid = params.get("ssid", "").replace("+", " ")
+            wifi_password = params.get("wifi_password", "").replace("+", " ")
+            thingspeak_api = params.get("thingspeak_api", "").replace("+", " ")
+            callmebot_api = params.get("callmebot_api", "").replace("+", " ")
+            phone = params.get("phone", "").replace("+", " ")
             # Uložení zadaných hodnot do konfiguračního souboru
-            config_data = "ssid=" + params.get("ssid", "") + "\n"
-            config_data += "wifi_password=" + params.get("wifi_password", "") + "\n"
-            config_data += "thingspeak_api=" + params.get("thingspeak_api", "") + "\n"
-            config_data += "callmebot_api=" + params.get("callmebot_api", "") + "\n"
-            config_data += "phone=" + params.get("phone", "") + "\n"
+            config_data = "ssid=" + ssid + "\n"
+            config_data += "wifi_password=" + wifi_password + "\n"
+            config_data += "thingspeak_api=" + thingspeak_api + "\n"
+            config_data += "callmebot_api=" + callmebot_api + "\n"
+            config_data += "phone=" + phone + "\n"
             with open(CONFIG_FILE, "w") as f:
                 f.write(config_data)
             response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n<h1>Konfigurace uložena! Zařízení se restartuje.</h1>"
@@ -274,7 +280,7 @@ def deep_sleep(seconds):
 connect_wifi()
 
 # Inicializace instance pro aktualizaci a kontrola aktualizace souboru main.py
-updater = update.Update("https://raw.githubusercontent.com/MartinMiso/aktualizace_2/refs/heads/main/main.py")
+updater = update.Update("https://raw.githubusercontent.com/MartinMiso/aktualizace_5/refs/heads/main/main.py")
 updater.compare_and_update("main.py")
 
 # Načtení nebo nastavení první váhy (tary)
@@ -313,3 +319,4 @@ while True:
         print("Chyba senzoru:", e)
      
     deep_sleep(600000)  # Hluboký spánek na 10 minut
+
